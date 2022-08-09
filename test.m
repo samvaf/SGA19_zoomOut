@@ -13,6 +13,7 @@ S2 = MESH.MESH_IO.read_shape([mesh_dir, s2_name], normalize_);
 
 S1 = MESH.compute_LaplacianBasis(S1, 50);
 S2 = MESH.compute_LaplacianBasis(S2, 50);
+
 %% set the initial map
 num_eig = 16;
 
@@ -23,22 +24,28 @@ figure();
 n_subp = ceil(sqrt(num_eig));
 for i = 1:num_eig
     subplot(n_subp,n_subp,i); plot_func_on_mesh(S1, B1(:,i)); title([s1_name, ': LB',num2str(i)])
+    axis equal
 end
 figure();
 for i = 1:num_eig
 	subplot(n_subp,n_subp,i); plot_func_on_mesh(S2, B2(:,i));title([s2_name, ': LB',num2str(i)])
+    axis equal
 end
+
 % we can see that the first four LB basis of the cat and the wolf align
 % with each other, therefore, we can use the identity as the initial
 % functionl map
 % also: if we start with only the first three LBs, we will get the
 % symmetric map
-C21_ini = diag([1,0,0,0,1,1,0,0,0,0,0,1]);
+C21_ini = diag([1,0,0,0,1,1,0,0,0,0,0,1]); % for vertebrae
+% C21_ini = diag([0,1,0,0,1,0,0,0,0,0,1,0]); % for phantom
 T12_ini = fMAP.fMap2pMap(B2,B1,C21_ini);
 
 figure();
 subplot(1,2,1); visualize_map_on_source(S1, S2, T12_ini); title('Source');
 subplot(1,2,2); visualize_map_on_target(S1, S2, T12_ini); title('The initial p2p-map w.r.t. the identity fMap')
+axis equal
+
 %% apply zoomOut
 para.k_init = 3;
 para.k_step = 1;
@@ -60,8 +67,17 @@ figure();
 plot_id = [2,3,4,5,18,48];
 subplot(2,7,1); visualize_map_on_source(S1,S2,T12); title('Source');
 for i = 1:length(plot_id)
-    subplot(2,7,i+1); imagesc(all_C21{plot_id(i)}); axis square; 
+    subplot(2,7,i+1); imagesc(all_C21{plot_id(i)}); axis square; axis equal
     title(['fMap size: ' num2str(size(all_C21{plot_id(i)},1))]);
-    subplot(2,7,i+8); visualize_map_on_target(S1, S2, all_T12{plot_id(i)});
+    subplot(2,7,i+8); visualize_map_on_target(S1, S2, all_T12{plot_id(i)}); axis equal
 end
 set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0.34, 1, 0.65]);
+
+%%
+figure()
+visualize_correspondences_source_target(S1, S2, T12); axis equal
+%%
+figure();
+subplot(1,2,1); visualize_map_on_source(S1, S2, T12); title('Source: Vertebra L2');
+subplot(1,2,2); visualize_map_on_target(S1, S2, T12); title('Target: Vertebra L3')
+axis equal
